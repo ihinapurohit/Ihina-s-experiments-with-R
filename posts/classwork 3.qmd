@@ -1,0 +1,150 @@
+---
+title: "class day 3 22/09"
+format: html
+editor: visual
+---
+
+```{r}
+#/label: setup
+library(tidyverse)
+library(mosaic)
+library(skimr) 
+library(visdat) 
+library(naniar)
+library(janitor)
+library(dbplyr)
+library(tinytable)
+library(DT)
+```
+
+```{r}
+DocVisits <- readr::read_delim("https://vincentarelbundock.github.io/Rdatasets/csv/AER/DoctorVisits.csv") %>% 
+  janitor::clean_names(case = "snake")
+dplyr::glimpse(DocVisits)
+DocVisits
+```
+
+```{r}
+DocVisits_modified <- DocVisits %>%
+  # Replace common NA strings and numbers with actual NA
+  naniar::replace_with_na_all(condition = ~ .x %in% common_na_strings) %>%
+  naniar::replace_with_na_all(condition = ~ .x %in% common_na_numbers) %>%
+
+  # Convert character variables to factors
+  mutate(
+    gender = as_factor(gender),
+    private = as_factor(private),
+    freepoor = as_factor(freepoor),
+    freerepat = as_factor(freerepat),
+    nchronic = as_factor(nchronic),
+    lchronic = as_factor(lchronic)
+  ) %>%
+  # arrange the character variables first
+  dplyr::relocate(where(is.factor), .after = rownames)
+dplyr::glimpse(DocVisits)
+
+
+DocVisits_modified
+```
+
+```{r}
+DocVisits_modified %>%
+  DT::datatable(
+    caption = htmltools::tags$caption(
+      style = "caption-side: top; text-align: left; color: black; font-size: 150%;",
+      "Doctor Visits Dataset (Clean)"
+    ),
+    options = list(pageLength = 10, autoWidth = TRUE)
+  ) %>%
+  DT::formatStyle(
+    columns = names(DocVisits_modified),
+    fontFamily = "Roboto Condensed",
+    fontSize = "12px"
+  )
+```
+
+```{r}
+DocVisits_modified %>%
+  dplyr::count(across(.cols = c(gender, private))) %>%
+  tt()
+```
+
+```{r}
+DocVisits %>%
+  count(across(where(is.character))) %>%
+  tt()
+```
+
+##Summarise Quant Variables
+
+```{r}
+DocVisits_modified %>%
+  group_by(freepoor, nchronic) %>%
+  summarise(
+    mean_income = mean(income),
+    average_visits = mean(visits),
+    count = n()
+  )
+```
+
+```{r}
+set.seed(1947)
+diamonds %>%
+  slice_sample(n = 150, weight_by = cut) %>%
+  gf_point(price ~ carat,
+    colour = ~cut,
+    shape = ~cut,
+    size = 2, data = .
+  ) %>%
+  gf_labs(
+    title = "Plot Title = DIAMONDS ARE FOREVER",
+    subtitle = "Plot Subtitle = AND A GIRL'S BEST FRIEND",
+    caption = "Plot Caption = From the diamonds dataset",
+    x = "x-Axis Title = CARAT",
+    y = "y-Axis Title = PRICE"
+  ) %>%
+  # Use same name for scales to merge legends
+  gf_refine(
+    scale_color_brewer(
+      name = "Legend = DIAMOND QUALITY",
+      palette = "Set1"
+    ),
+    scale_shape_manual(
+      name = "Legend = DIAMOND QUALITY",
+      values = c(15:21)
+    )
+  ) %>%
+  gf_annotate("text",
+    x = 1.0, y = 16000,
+    label = "These DIAMONDS are\n Super Affordable!!",
+    fontface = "bold",
+    size = 2
+  ) %>%
+  gf_annotate("curve",
+    x = 0.9,
+    y = 14500,
+    yend = 8000,
+    xend = 0.95,
+    linewidth = 0.5,
+    curvature = 0.5,
+    arrow = arrow(length = unit(0.25, "cm"))
+  ) %>%
+  gf_annotate(
+    "rect",
+    xmin = 1,
+    xmax = 1.25,
+    ymin = 2250,
+    ymax = 10000,
+    alpha = 0.5,
+    fill = "grey80",
+    col = "black"
+  )
+dplyr::glimpse(diamonds) %>% 
+count(clarity, cut,color)
+```
+
+```{r}
+diamonds %>% 
+  gf_bar(~clarity, color =~ cut, fill = "blue") %>% 
+gf_labs(title = "Clarity of Diamonds", x = "Clarity", y = "Count") 
+```

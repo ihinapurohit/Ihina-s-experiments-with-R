@@ -1,0 +1,69 @@
+---
+title: "Fertility"
+format: html
+editor: visual
+---
+
+##Setting up Libraries
+
+##Reading Data
+
+```{r}
+Fertility <- readr::read_delim("Data/Fertility.csv") %>% 
+  janitor::c
+```{r}
+library(tidyverse)
+library(mosaic)
+library(skimr)
+library(visdat)
+library(naniar)
+library(janitor)
+library(ggformula)
+library(dplyr)
+library(tinytable)
+library(DT)
+```
+lean_names(case="snake")
+Fertility
+```
+
+```{r}
+fertility_mod1 <- Fertility %>% 
+ naniar::replace_with_na_at(.vars = c("afam", "hispanic", "other"),
+                  condition = ~ .x %in% c("no", "no", "no")) %>% 
+                    tidyr::drop_na()
+fertility_mod1
+```
+
+##Mutating Data
+
+```{r}
+fertility_mod1 <- Fertility %>%
+  dplyr::mutate(
+    across(c("afam", "hispanic", "other"),
+           ~ ifelse(afam == "no" & hispanic == "no" & other == "no", NA, .x))
+  ) %>%
+  tidyr::drop_na()
+fertility_mod1
+```
+
+```{r}
+fertility_mod2 <- fertility_mod1 %>%
+  dplyr::mutate(
+    across(c("afam", "hispanic", "other"),
+           ~ ifelse(
+             (afam == "yes" & hispanic == "yes" & other == "no")| 
+            (afam == "yes" & hispanic == "no" & other == "yes")|
+              (afam == "no" & hispanic == "yes" & other == "yes")|
+              (afam ==  "yes" & hispanic == "yes" & other == "yes"), NA, .x))
+  ) %>%
+  tidyr::drop_na()
+fertility_mod2
+```
+
+```{r}
+fertility_mod3 <- fertility_mod2 %>% 
+mutate(morekids = as.factor(morekids), gender1 = as.factor(gender1), gender2 = as.factor(gender2), afam = as.factor(afam), hispanic = as.factor(hispanic), other = as.factor(other)) %>% 
+  dplyr::relocate(afam, hispanic, other, gender1, gender2, work, morekids, .after = age)
+fertility_mod3
+```

@@ -1,0 +1,78 @@
+---
+title: "classwork 4"
+format: html
+editor: visual
+---
+
+```{r}
+#/label: setup
+library(tidyverse)
+library(mosaic)
+library(skimr) 
+library(visdat) 
+library(naniar)
+library(janitor)
+library(dbplyr)
+library(tinytable)
+library(DT)
+```
+
+```{r}
+set.seed(1947)
+diamonds %>%
+
+gf_histogram(~price, data = diamonds_modified, bins= 2) %>%
+  gf_labs(
+    title = "Plot 1A: Diamond Prices",
+    caption = "ggformula"
+  )
+  
+```
+
+```{r}
+data("diamonds", package = "ggplot2")
+glimpse(diamonds)
+## More bins
+diamonds %>%
+  gf_histogram(~carat, color =~ color,
+    bins = 100
+  ) %>%
+  gf_labs(
+    title = "Plot 2B: Carats of Diamonds",
+    caption = "ggformula"
+  )
+
+```
+
+```{r}
+data("diamonds", package = "ggplot2")
+glimpse(diamonds)
+## More bins
+diamonds %>%
+  gf_histogram(~carat, color =~ color,
+    bins = 100
+  ) %>%
+  gf_labs(
+    title = "Plot 2B: Carats of Diamonds",
+    caption = "ggformula"
+  ) %>% 
+  gf_facet_wrap(~color)
+  
+
+```
+
+```{r}
+diamonds %>%
+  gf_boxplot( clarity ~ carat, orientation = "y", fill =~ clarity) %>% 
+  gf_refine(scale_fill_brewer(palette = "Set1"))
+
+```
+
+```{r}
+diamonds %>%
+  gf_boxplot( clarity ~ depth, orientation = "y", fill =~ clarity) %>% 
+  gf_refine(scale_fill_brewer(palette = "Set1")) %>% 
+  gf_facet_wrap(~depth)
+
+
+```
